@@ -62,7 +62,6 @@ const Display = ({ file, list }: DisplayProps) => {
             if (pageRotation == 270) {
                 setDefaultRotation(3);
             }
-            console.log(page);
             const viewport = page.getViewport({
                 scale: 1,
                 rotation: (pageRotation + rotation) % 360,
@@ -75,7 +74,6 @@ const Display = ({ file, list }: DisplayProps) => {
 
             canvas.width = viewport.width;
             canvas.height = viewport.height;
-            console.log(canvas.clientWidth);
 
             setViewportSize({ width: viewport.width, height: viewport.height });
 
@@ -159,7 +157,6 @@ const Display = ({ file, list }: DisplayProps) => {
             // Copy a fresh original page for the teacher title page
 
             const teacherPage = newPdfDoc.addPage();
-            console.log(rotation);
             teacherPage.setRotation(
                 degrees(rotation + rotations[defaultRotation])
             );
@@ -195,14 +192,11 @@ const Display = ({ file, list }: DisplayProps) => {
 
                 const text = document.getElementById("text-overlay");
                 if (!text) continue;
-                const width = text.getBoundingClientRect().width;
-                const height = text.getBoundingClientRect().height;
                 const pdfWidth = page.getWidth();
                 const pdfHeight = page.getHeight();
 
                 let textX = namePosition.x;
                 let textY = namePosition.y;
-                console.log(rotation + rotations[defaultRotation]);
                 const totalRotation =
                     (rotation + rotations[defaultRotation]) % 360;
 
