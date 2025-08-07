@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, StandardFonts, degrees } from "pdf-lib";
+import { Comfortaa } from "next/font/google";
+const comfortaa = Comfortaa({
+    weight: "600",
+    subsets: ["latin"],
+});
 
 type DisplayProps = {
     file: File | null;
@@ -137,6 +143,11 @@ const Display = ({ file, list }: DisplayProps) => {
 
         // Create a new PDF document
         const newPdfDoc = await PDFDocument.create();
+        newPdfDoc.registerFontkit(fontkit);
+        const fontBytes = await fetch("@/../fonts/Comfortaa-Bold.ttf").then(
+            (res) => res.arrayBuffer()
+        );
+        const customFont = await newPdfDoc.embedFont(fontBytes);
 
         // Embed a font for the names
         const font = await newPdfDoc.embedFont(StandardFonts.Helvetica);
@@ -221,7 +232,7 @@ const Display = ({ file, list }: DisplayProps) => {
                     x: textX,
                     y: textY,
                     size: 20,
-                    font,
+                    font: customFont,
                     color: rgb(0, 0, 0),
                     rotate: degrees(rotation + rotations[defaultRotation]),
                 });
@@ -299,6 +310,7 @@ const Display = ({ file, list }: DisplayProps) => {
                         alignItems: "center",
                         justifyContent: "flex-start",
                     }}
+                    className={comfortaa.className}
                 >
                     {"<<name>>"}
                 </div>
