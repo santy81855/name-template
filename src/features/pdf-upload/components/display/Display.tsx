@@ -5,15 +5,17 @@ import { PDFDocument, rgb, StandardFonts, degrees } from "pdf-lib";
 
 type DisplayProps = {
     file: File | null;
+    list: string[][];
 };
 
 const rotations = [0, 90, 180, 270];
 
-const Display = ({ file }: DisplayProps) => {
+const Display = ({ file, list }: DisplayProps) => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
     const [rotationIndex, setRotationIndex] = useState(0); // index in rotations array
+    const [defaultRotation, setDefaultRotation] = useState(0);
     const rotation = rotations[rotationIndex];
 
     // Position state of the text overlay (in px)
@@ -26,8 +28,6 @@ const Display = ({ file }: DisplayProps) => {
         width: number;
         height: number;
     }>({ width: 0, height: 0 });
-
-    const names = ["Alice", "Bob", "Charlie", "Diana"];
 
     useEffect(() => {
         if (!file) return;
@@ -44,6 +44,18 @@ const Display = ({ file }: DisplayProps) => {
             const pdf = await loadingTask.promise;
             const page = await pdf.getPage(1);
             const pageRotation = page.rotate ?? 0;
+            if (pageRotation == 0) {
+                setDefaultRotation(0);
+            }
+            if (pageRotation == 90) {
+                setDefaultRotation(1);
+            }
+            if (pageRotation == 180) {
+                setDefaultRotation(2);
+            }
+            if (pageRotation == 270) {
+                setDefaultRotation(3);
+            }
             console.log(page);
             const viewport = page.getViewport({
                 scale: 1,
@@ -115,7 +127,6 @@ const Display = ({ file }: DisplayProps) => {
 
     async function generateNamedPdf(
         originalFile: File,
-        names: string[],
         namePosition: { x: number; y: number }
     ) {
         // Read the original PDF as ArrayBuffer
@@ -130,53 +141,86 @@ const Display = ({ file }: DisplayProps) => {
         // Embed a font for the names
         const font = await newPdfDoc.embedFont(StandardFonts.Helvetica);
 
-        for (const name of names) {
-            // Get the first page of original PDF (assuming single page for example)
-            const [originalPage] = await newPdfDoc.copyPages(originalPdfDoc, [
-                0,
-            ]);
-            // Add a fresh copy of the original page for each name
-            const page = newPdfDoc.addPage(originalPage);
-            page.setRotation(degrees(rotation));
+        for (const group of list) {
+            const [teacher, ...students] = group;
 
-            // PDF coordinate system origin is bottom-left, so convert y
-            const text = document.getElementById("text-overlay");
-            console.log(text?.getBoundingClientRect());
-            if (!text) continue;
-            const width = text.getBoundingClientRect().width;
-            const height = text.getBoundingClientRect().height;
-            let textX = namePosition.x;
-            let textY = namePosition.y;
-            const pdfWidth = viewportSize.width - width / 2;
-            const pdfHeight = viewportSize.height - height;
+            // --- Add teacher title page ---
+            // Copy a fresh original page for the teacher title page
 
-            switch (rotation) {
-                case 0:
-                    textY = pdfHeight - namePosition.y;
-                    break;
-                case 90:
-                    [textX, textY] = [namePosition.y, namePosition.x];
-                    break;
-                case 180:
-                    textX = pdfWidth - namePosition.x;
-                    textY = namePosition.y;
-                    break;
-                case 270:
-                    [textX, textY] = [
-                        pdfWidth - namePosition.y,
-                        pdfHeight - namePosition.x,
-                    ];
-                    break;
-            }
+            const teacherPage = newPdfDoc.addPage();
+            console.log(rotation);
+            teacherPage.setRotation(
+                degrees(rotation + rotations[defaultRotation])
+            );
 
-            page.drawText(name, {
-                x: textX,
-                y: textY,
-                size: 14,
+            const teacherFontSize = 24;
+            const teacherTextWidth = font.widthOfTextAtSize(
+                teacher,
+                teacherFontSize
+            );
+            const teacherTextHeight = font.heightAtSize(teacherFontSize);
+            const centerX = (teacherPage.getWidth() - teacherTextWidth) / 2;
+            const centerY = (teacherPage.getHeight() - teacherTextHeight) / 2;
+
+            teacherPage.drawText(teacher, {
+                x: centerX,
+                y: centerY,
+                size: teacherFontSize,
                 font,
-                color: rgb(1, 0, 0),
-                rotate: degrees(rotation),
+                color: rgb(0, 0, 0),
+                rotate: degrees(rotation + rotations[defaultRotation]),
             });
+
+            // --- Add pages for each student ---
+            for (const student of students) {
+                const [originalPageCopy] = await newPdfDoc.copyPages(
+                    originalPdfDoc,
+                    [0]
+                );
+                const page = newPdfDoc.addPage(originalPageCopy);
+                page.setRotation(
+                    degrees(rotation + rotations[defaultRotation])
+                );
+
+                const text = document.getElementById("text-overlay");
+                if (!text) continue;
+                const width = text.getBoundingClientRect().width;
+                const height = text.getBoundingClientRect().height;
+                const pdfWidth = viewportSize.width - width / 2;
+                const pdfHeight = viewportSize.height - height;
+
+                let textX = namePosition.x;
+                let textY = namePosition.y;
+                console.log(rotation + rotations[defaultRotation]);
+                switch (rotation + rotations[defaultRotation]) {
+                    case 0:
+                        console.log("here");
+                        textY = pdfHeight - namePosition.y;
+                        break;
+                    case 90:
+                        [textX, textY] = [namePosition.y, namePosition.x];
+                        break;
+                    case 180:
+                        textX = pdfWidth - namePosition.x;
+                        textY = namePosition.y;
+                        break;
+                    case 270:
+                        [textX, textY] = [
+                            pdfWidth - namePosition.y,
+                            pdfHeight - namePosition.x,
+                        ];
+                        break;
+                }
+
+                page.drawText(student, {
+                    x: textX,
+                    y: textY,
+                    size: 14,
+                    font,
+                    color: rgb(0, 0, 0),
+                    rotate: degrees(rotation + rotations[defaultRotation]),
+                });
+            }
         }
 
         // Serialize the PDF document to bytes
@@ -189,7 +233,7 @@ const Display = ({ file }: DisplayProps) => {
     const onDownloadClick = async () => {
         if (!file) return;
 
-        const pdfBlob = await generateNamedPdf(file, names, textPos);
+        const pdfBlob = await generateNamedPdf(file, textPos);
 
         // Create a download link and click it
         const url = URL.createObjectURL(pdfBlob);
@@ -202,15 +246,14 @@ const Display = ({ file }: DisplayProps) => {
 
     return (
         <div className="w-full flex flex-col justify-center items-center">
-            <div className="mb-4 flex justify-center gap-4">
+            <div className="w-full mb-4 flex justify-end gap-4">
                 <button
                     onClick={rotateClockwise}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
                     type="button"
                 >
-                    Rotate 90°
+                    Rotate
                 </button>
-                <div>Current rotation: {rotation}°</div>
             </div>
 
             <div
@@ -255,13 +298,21 @@ const Display = ({ file }: DisplayProps) => {
                     {"<<name>>"}
                 </div>
             </div>
-            <button
-                onClick={onDownloadClick}
-                className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                type="button"
-            >
-                Download PDF with Names
-            </button>
+            {list.length > 0 && file && (
+                <section className="w-full flex flex-col justify-center items-start pt-8 pb-8 pl-4 pr-4 gap-4">
+                    <section className="flex flex-row gap-8 justify-start items-center w-full max-w-3xl">
+                        <h2 className="font-bold">4. Download PDF</h2>
+                    </section>
+
+                    <button
+                        onClick={onDownloadClick}
+                        className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                        type="button"
+                    >
+                        Download PDF with Names
+                    </button>
+                </section>
+            )}
         </div>
     );
 };

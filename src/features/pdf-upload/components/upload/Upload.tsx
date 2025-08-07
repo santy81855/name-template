@@ -6,7 +6,7 @@ type UploadProps = {
 
 const Upload = ({ setPdfFile }: UploadProps) => {
     return (
-        <section className="">
+        <section className="w-80 flex flex-col items-center justify-center">
             <input
                 type="file"
                 accept="application/pdf"
@@ -16,7 +16,7 @@ const Upload = ({ setPdfFile }: UploadProps) => {
                         setPdfFile(file);
                     }
                 }}
-                className="border border-gray-300 rounded p-2 mb-4 cursor-pointer"
+                className="w-full border border-gray-300 p-2 cursor-pointer bg-gray-300 text-black hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded"
             />
         </section>
     );
