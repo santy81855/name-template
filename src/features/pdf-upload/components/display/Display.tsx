@@ -251,7 +251,7 @@ const Display = ({ file, list }: DisplayProps) => {
 
     return (
         <div className="w-full flex flex-col justify-center items-center">
-            <div className="w-full mb-4 flex justify-end gap-4">
+            <div className="w-full mb-4 flex justify-center gap-4">
                 <button
                     onClick={rotateClockwise}
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
