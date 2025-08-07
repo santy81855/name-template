@@ -220,7 +220,7 @@ const Display = ({ file, list }: DisplayProps) => {
                 page.drawText(student, {
                     x: textX,
                     y: textY,
-                    size: 14,
+                    size: 20,
                     font,
                     color: rgb(0, 0, 0),
                     rotate: degrees(rotation + rotations[defaultRotation]),
@@ -295,7 +295,7 @@ const Display = ({ file, list }: DisplayProps) => {
                         width: 50,
                         height: 20,
                         display: "flex",
-                        fontSize: 14,
+                        fontSize: 20,
                         alignItems: "center",
                         justifyContent: "flex-start",
                     }}
