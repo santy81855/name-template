@@ -186,15 +186,17 @@ const Display = ({ file, list }: DisplayProps) => {
                 if (!text) continue;
                 const width = text.getBoundingClientRect().width;
                 const height = text.getBoundingClientRect().height;
-                const pdfWidth = viewportSize.width - width / 2;
-                const pdfHeight = viewportSize.height - height;
+                const pdfWidth = page.getWidth();
+                const pdfHeight = page.getHeight();
 
                 let textX = namePosition.x;
                 let textY = namePosition.y;
                 console.log(rotation + rotations[defaultRotation]);
-                switch (rotation + rotations[defaultRotation]) {
+                const totalRotation =
+                    (rotation + rotations[defaultRotation]) % 360;
+
+                switch (totalRotation) {
                     case 0:
-                        console.log("here");
                         textY = pdfHeight - namePosition.y;
                         break;
                     case 90:
@@ -209,6 +211,9 @@ const Display = ({ file, list }: DisplayProps) => {
                             pdfWidth - namePosition.y,
                             pdfHeight - namePosition.x,
                         ];
+                        break;
+                    default:
+                        console.warn("Unhandled rotation:", totalRotation);
                         break;
                 }
 
