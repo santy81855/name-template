@@ -11,7 +11,7 @@ const Wrapper = () => {
 
     return (
         <section className="w-full flex flex-col justify-start items-center max-w-6xl">
-            <h1 className="text-2xl font-bold mb-4">Mada's Helper</h1>
+            <h1 className="text-2xl font-bold mb-4">Mada&apos;s Helper</h1>
             {(pdfFile || studentNames.length > 0) && (
                 <button
                     className="cursor-pointer bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"

@@ -232,7 +232,7 @@ const Display = ({ file, list }: DisplayProps) => {
         const pdfBytes = await newPdfDoc.save();
 
         // Return a Blob to download
-        return new Blob([pdfBytes as any], { type: "application/pdf" });
+        return new Blob([pdfBytes as BlobPart], { type: "application/pdf" });
     }
 
     const onDownloadClick = async () => {

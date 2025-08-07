@@ -19,7 +19,7 @@ const NameUpload = ({
             const data = evt.target?.result;
             const workbook = XLSX.read(data, { type: "binary" });
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const sheetData: any[][] = XLSX.utils.sheet_to_json(sheet, {
+            const sheetData: string[][] = XLSX.utils.sheet_to_json(sheet, {
                 header: 1,
                 blankrows: false,
             });
